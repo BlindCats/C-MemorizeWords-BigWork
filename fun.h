@@ -7,7 +7,7 @@
 //  从filename.txt文件读取，返回单词总数    
 int ReadFromfile(char filename[]);
 /*  从filename.in文件读取，返回单词总数  */
-int ReadFromIn(char filename[]);
+int ReadFromIn(char filename[],WORD words[]);
 //  载入函数    
 void UpLoad(void);
 //  排序函数    

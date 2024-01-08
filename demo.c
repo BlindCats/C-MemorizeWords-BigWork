@@ -28,7 +28,7 @@ int main()
 	while(1)
 	{
 		if(book)							//	若已导入词库，则从in文件导入结构体
-		cnt = ReadFromIn("Wordslist.in");	//	cnt为全局变量，为单词的总数
+		cnt = ReadFromIn("Wordslist.in",words);	//	cnt为全局变量，为单词的总数
         system("cls");
 		puts("----------------------------------");
 		puts("           背单词主菜单            ");

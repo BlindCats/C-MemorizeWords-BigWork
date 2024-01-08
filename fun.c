@@ -18,6 +18,9 @@
 #include <ctype.h>
 #include <time.h>
 
+int all;
+int Unknownwords;
+
 int TranStrtoInt(char str[])
 {
     int len = strlen(str), sum = 0, i;
@@ -28,7 +31,7 @@ int TranStrtoInt(char str[])
     return sum;
 }
 
-int ReadFromIn(char filename[])
+int ReadFromIn(char filename[],WORD words[])
 {
 #ifdef _TEST_
     printf("to:ReadFromIN\n");
@@ -570,5 +573,175 @@ int WordTest_Choise(int id,int mode)
             getchar();
             return 0;
         }
+    }
+}
+
+
+
+// 将memory函数中的0123四个选项顺序打乱 
+void r(char *x[], int n) {
+    if (n > 1) {
+        int i;
+        for (i = n - 1; i > 0; i--) {
+            int j = rand() % (i + 1);
+            char *y = x[j];
+            x[j] = x[i];
+            x[i] = y;
+        }
+    }
+}
+//随机生成四个选项，选择正确选项 
+void memory(char filename[],WORD word[],int cnt)
+{
+	WORD raw[2000];
+	int id = ReadFromIn(filename,raw);
+	srand(time(0));
+	int x,y,z,i,j,choose;
+	for(i=0;i<cnt;i++)
+	{
+	x=rand()%cnt;
+	y=rand()%cnt;
+	z=rand()%cnt;
+	char *option[4];
+        option[0] = word[x].cn;
+        option[1] = word[y].cn;
+        option[2] = word[z].cn;
+        option[3] = raw[i].cn;
+	int n=sizeof(option)/sizeof(option[0]);
+	r(option,n);
+	printf("请选出正确的意思:%s \n",raw[i].en);
+	for(j=0;j<n;j++)
+	{
+	printf("%d.%s ", j,option[j]);
+	if(strcmp(option[j],raw[i].cn)==0)
+	x=j;
+	}
+	scanf("%d",&choose);
+	if(choose==x)
+	printf("true\n");
+	else
+	printf("wrong, answer is %s",raw[i].cn);
+	printf("\n");
+	
+	}
+}
+//依次默写单词，直至每个单词都默写正确 
+void text(char filename[],char filename1[])
+{
+	WORD wrong[2000];
+	FILE *fp;
+	FILE *fp1;
+	int i,j,line=1;
+	char answer[50],filechar[40],str[50];
+	int id=ReadFromIn(filename,wrong);
+	for(j=0;;j++)
+	{
+		if(id==0)
+		break;
+		for(i=0;i<id;i++)
+		{
+		printf("%s,请写出英文:",wrong[i].cn);
+		scanf("%s",answer);
+		if(strcmp(answer,wrong[i].en)==0)//如果正确，除去第一行，存入另一文件 
+		{
+		printf("true");
+		fp = fopen(filename,"r");
+    fp1 = fopen(filename1,"w");
+    while(fgets(filechar,40,fp) != NULL)
+    {
+    	if(line !=1)
+    	fputs(filechar,fp1);
+	line++;
+	}
+	fclose(fp);
+	fclose(fp1);
+}
+	else
+	{
+		fp = fopen(filename,"r");
+    fp1 = fopen(filename1,"w"); 
+    while(fgets(filechar,40,fp) != NULL)//除去第一行，存入另一文件，并且第一行存入另一文件的最后 
+    {
+    	if(line !=1)
+    	fputs(filechar,fp1);
+	line++;
+	}
+	fprintf(fp,"%s %s.%s Unit%d %d%c",wrong[i].en,wrong[i].spech,wrong[i].cn,wrong[i].unit,wrong[i].grade,wrong[i].part);
+	fclose(fp);
+	fclose(fp1);
+	}
+	}
+	text(filename1,filename);//左右文件依次交换，直到所有单词都默写正确 
+}
+}
+
+void select()
+{
+    int i=1;
+    int t=0;
+    int k=1;
+    while(k)
+    {
+        printf("%s",words[i].en);
+        printf("这个单词的中文您知道吗？\n知道请按0，不知道请按1。");
+        scanf("%d",&t);
+        while(t)
+        {
+            FILE *fp;
+            fp=fopen("raw.txt","a");
+            fprintf(fp,"%s %s %s %d %d %s",words[i].en,words[i].cn,words[i].spech,words[i].unit,words[i].grade,words[i].part);
+            fclose(fp);
+            t=0;
+        }
+        if(i<all) i++;
+        printf("请问您需要继续测试单词吗？\n继续请按1，结束请按0。");
+        scanf("%d",&k);
+    }
+}
+
+void readUnknown(WORD wordss[])
+{
+    int i=0;
+    FILE *fp;
+    fp=fopen("wordlist.in","r");
+    while(!feof(fp))
+    {
+        fscanf(fp,"%s %s %s %d %d %s",&wordss[i].en,&wordss[i].cn,&wordss[i].spech,&wordss[i].unit,&wordss[i].grade,&wordss[i].part);
+        i++;
+    }
+    Unknownwords=i;
+    fclose(fp);
+}
+
+void select1()
+{
+    int i=0;
+    int t=0;
+    int k=1;
+    WORD wordss[2000];
+    char filename[50]="raw.txt";
+    readUnknown(wordss);
+    while(k)
+    {
+        printf("%s",wordss[i].cn);
+        printf("这个单词的英文您知道吗？\n知道请按0，不知道请按1。");
+        scanf("%d",&t);
+        while(t)
+        {
+            FILE *fp;
+            fp=fopen(filename,"a");
+            for(i=0;i<Unknownwords;i++)
+            {
+                if(!strcmp(words[i].en,wordss[i].en))
+                    printf("生词本中已有此单词。");
+                else
+                    fprintf(fp,"%s %s %s %d %d %s",words[i].en,words[i].cn,words[i].spech,words[i].unit,words[i].grade,words[i].part);
+               }
+            fclose(fp);
+            t=0;
+        }
+        if(i<all) i++;
+        printf("请问您需要继续测试单词吗？\n继续请按1，结束请按0。");
+        scanf("%d",&k);
     }
 }
